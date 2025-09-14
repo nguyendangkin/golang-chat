@@ -14,14 +14,14 @@ type ValidationError struct {
 }
 
 // Map ánh xạ field trong code -> tên hiển thị tiếng Việt
-var fieldLabels = map[string]string{
+var fieldMap = map[string]string{
 	"email":           "Email",
 	"password":        "Mật khẩu",
 	"confirmPassword": "Xác nhận mật khẩu",
 }
 
 // Map ánh xạ rule -> template lỗi
-var validationMessages = map[string]string{
+var messageMap = map[string]string{
 	"required": "%s là bắt buộc",
 	"email":    "%s không đúng định dạng email",
 	"min":      "%s phải có ít nhất %s ký tự",
@@ -29,47 +29,47 @@ var validationMessages = map[string]string{
 
 // ParseValidationErrors chuyển lỗi của validator thành slice ValidationError
 func ParseValidationErrors(err error) []ValidationError {
-	var result []ValidationError
+	var validationErrors []ValidationError
 
-	if ve, ok := err.(validator.ValidationErrors); ok {
-		for _, fe := range ve { // fe = field error
-			result = append(result, ValidationError{
-				Field:   mapFieldName(fe.Field()),
-				Message: buildErrorMessage(fe),
+	if valueErrors, ok := err.(validator.ValidationErrors); ok {
+		for _, valueError := range valueErrors {
+			validationErrors = append(validationErrors, ValidationError{
+				Field:   getFieldName(valueError.Field()),
+				Message: getErrorMessage(valueError),
 			})
 		}
 	}
 
-	return result
+	return validationErrors
 }
 
-// mapFieldName đổi field từ struct sang label tiếng Việt
-func mapFieldName(field string) string {
+// đổi field từ struct sang label tiếng Việt
+func getFieldName(field string) string {
 	// Chuyển chữ cái đầu sang thường (vd: "Password" -> "password")
 	field = strings.ToLower(field[:1]) + field[1:]
 
-	if label, exists := fieldLabels[field]; exists {
-		return label
+	if fieldNewName, exists := fieldMap[field]; exists {
+		return fieldNewName
 	}
 	return field
 }
 
 // buildErrorMessage xây dựng thông báo lỗi thân thiện
-func buildErrorMessage(fe validator.FieldError) string {
-	fieldName := mapFieldName(fe.Field())
-	tag := fe.Tag()
+func getErrorMessage(valueError validator.FieldError) string {
+	fieldName := getFieldName(valueError.Field())
+	tag := valueError.Tag()
 
-	template, ok := validationMessages[tag]
+	newMessage, ok := messageMap[tag]
 	if !ok {
 		return fmt.Sprintf("%s không hợp lệ", fieldName)
 	}
 
 	switch tag {
 	case "required", "email":
-		return fmt.Sprintf(template, fieldName)
+		return fmt.Sprintf(newMessage, fieldName)
 	case "min":
-		return fmt.Sprintf(template, fieldName, fe.Param())
+		return fmt.Sprintf(newMessage, fieldName, valueError.Param())
 	default:
-		return fmt.Sprintf(template, fieldName)
+		return fmt.Sprintf(newMessage, fieldName)
 	}
 }
