@@ -50,6 +50,6 @@ func (uh *UserHandler) Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
-		"message": "Đăng ký thành công, vui lòng kiểm tra Email",
+		"message": "Đăng ký thành công. Vui lòng kiểm tra Email",
 	})
 }
