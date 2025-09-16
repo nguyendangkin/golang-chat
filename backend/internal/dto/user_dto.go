@@ -8,5 +8,5 @@ type RegisterRequest struct {
 
 type VerifyCodeRequest struct {
 	Email string `json:"email" binding:"required,email"`
-	Code  string `json:"code" binding:"required,max=6"`
+	Code  string `json:"code" binding:"required,len=6"`
 }

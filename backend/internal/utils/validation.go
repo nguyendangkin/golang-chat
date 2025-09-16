@@ -27,6 +27,7 @@ var messageMap = map[string]string{
 	"email":    "%s không đúng định dạng email",
 	"min":      "%s phải có ít nhất %s ký tự",
 	"max":      "%s không được vượt quá %s ký tự",
+	"len":      "%s phải có %s ký tự",
 }
 
 // ParseValidationErrors chuyển lỗi của validator thành slice ValidationError
@@ -75,7 +76,7 @@ func getErrorMessage(valueError validator.FieldError) string {
 	switch tag {
 	case "required", "email":
 		return fmt.Sprintf(newMessage, newFieldName)
-	case "min", "max":
+	case "min", "max", "len":
 		return fmt.Sprintf(newMessage, newFieldName, valueError.Param())
 	default:
 		return fmt.Sprintf(newMessage, newFieldName)

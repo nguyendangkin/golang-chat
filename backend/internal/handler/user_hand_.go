@@ -19,35 +19,24 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
-func (uh *UserHandler) Ping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
-
-}
-
 func (uh *UserHandler) Register(c *gin.Context) {
 	var request dto.RegisterRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		validationErrors := utils.ParseValidationErrors(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Dữ liệu không hợp lệ",
-			"errors":  validationErrors,
-			"code":    http.StatusBadRequest,
+			"errors": validationErrors,
 		})
 		return
 	}
 
 	if request.Password != request.ConfirmPassword {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Dữ liệu không hợp lệ",
 			"errors": []map[string]string{
 				{
 					"field":   "confirmPassword",
 					"message": "Mật khẩu không khớp",
 				},
 			},
-			"code": http.StatusBadRequest,
 		})
 		return
 	}
@@ -55,20 +44,17 @@ func (uh *UserHandler) Register(c *gin.Context) {
 	if err := uh.userService.Register(request.Email, request.Password); err != nil {
 
 		c.JSON(http.StatusConflict, gin.H{
-			"code": http.StatusConflict,
 			"errors": []map[string]string{
 				{
 					"field":   "email",
 					"message": err.Error(),
 				},
 			},
-			"message": "Dữ liệu không hợp lệ",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
 		"message": "Đăng ký thành công. Vui lòng kiểm tra Email",
 	})
 }
@@ -78,9 +64,19 @@ func (uh *UserHandler) VerifyCode(c *gin.Context) {
 	if err := c.ShouldBindJSON(&request); err != nil {
 		validationErrors := utils.ParseValidationErrors(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Dữ liệu không hợp lệ",
-			"errors":  validationErrors,
-			"code":    http.StatusBadRequest,
+			"errors": validationErrors,
 		})
+		return
 	}
+
+	if err := uh.userService.VerifyCode(request.Email, request.Code); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Xác thực thành công",
+	})
 }
