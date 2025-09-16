@@ -5,3 +5,8 @@ type RegisterRequest struct {
 	Password        string `json:"password" binding:"required,min=6"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required"`
 }
+
+type VerifyCodeRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Code  string `json:"code" binding:"required,max=6"`
+}

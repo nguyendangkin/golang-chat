@@ -6,7 +6,7 @@ import (
 	"math/big"
 )
 
-func Generate() (string, error) {
+func GenerateCode6Digits() (string, error) {
 	// giới hạn từ 0 đến 999999
 	n, err := rand.Int(rand.Reader, big.NewInt(1000000))
 	if err != nil {

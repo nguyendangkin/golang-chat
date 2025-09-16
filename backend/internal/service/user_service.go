@@ -5,6 +5,7 @@ import (
 	"prompt/internal/model"
 	"prompt/internal/repository"
 	"prompt/internal/utils"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -33,7 +34,7 @@ func (us *UserService) Register(email, password string) error {
 	}
 
 	// create code
-	code, err := utils.Generate()
+	code, err := utils.GenerateCode6Digits()
 	if err != nil {
 		return err
 	}
@@ -45,6 +46,7 @@ func (us *UserService) Register(email, password string) error {
 		Role:       "user",
 		IsActive:   false,
 		CodeActive: code,
+		CodeExpiry: time.Now().Add(time.Minute * 5),
 	}
 
 	// create

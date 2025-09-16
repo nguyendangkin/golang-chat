@@ -18,6 +18,7 @@ var fieldMap = map[string]string{
 	"email":           "Email",
 	"password":        "Mật khẩu",
 	"confirmPassword": "Xác nhận mật khẩu",
+	"code":            "Mã xác thực",
 }
 
 // Map ánh xạ rule -> template lỗi
@@ -25,6 +26,7 @@ var messageMap = map[string]string{
 	"required": "%s là bắt buộc",
 	"email":    "%s không đúng định dạng email",
 	"min":      "%s phải có ít nhất %s ký tự",
+	"max":      "%s không được vượt quá %s ký tự",
 }
 
 // ParseValidationErrors chuyển lỗi của validator thành slice ValidationError
@@ -34,7 +36,7 @@ func ParseValidationErrors(err error) []ValidationError {
 	if valueErrors, ok := err.(validator.ValidationErrors); ok {
 		for _, valueError := range valueErrors {
 			validationErrors = append(validationErrors, ValidationError{
-				Field:   getFieldName(valueError.Field()),
+				Field:   conventFirstCharacterFieldName(valueError.Field()),
 				Message: getErrorMessage(valueError),
 			})
 		}
@@ -43,10 +45,16 @@ func ParseValidationErrors(err error) []ValidationError {
 	return validationErrors
 }
 
+// Chuyển chữ cái đầu sang thường (vd: "Password" -> "password")
+func conventFirstCharacterFieldName(field string) string {
+	return strings.ToLower(field[:1]) + field[1:]
+
+}
+
 // đổi field từ struct sang label tiếng Việt
 func getFieldName(field string) string {
-	// Chuyển chữ cái đầu sang thường (vd: "Password" -> "password")
-	field = strings.ToLower(field[:1]) + field[1:]
+
+	field = conventFirstCharacterFieldName(field)
 
 	if fieldNewName, exists := fieldMap[field]; exists {
 		return fieldNewName
@@ -56,20 +64,20 @@ func getFieldName(field string) string {
 
 // buildErrorMessage xây dựng thông báo lỗi thân thiện
 func getErrorMessage(valueError validator.FieldError) string {
-	fieldName := getFieldName(valueError.Field())
+	newFieldName := getFieldName(valueError.Field())
 	tag := valueError.Tag()
 
 	newMessage, ok := messageMap[tag]
 	if !ok {
-		return fmt.Sprintf("%s không hợp lệ", fieldName)
+		return fmt.Sprintf("%s không hợp lệ", newFieldName)
 	}
 
 	switch tag {
 	case "required", "email":
-		return fmt.Sprintf(newMessage, fieldName)
-	case "min":
-		return fmt.Sprintf(newMessage, fieldName, valueError.Param())
+		return fmt.Sprintf(newMessage, newFieldName)
+	case "min", "max":
+		return fmt.Sprintf(newMessage, newFieldName, valueError.Param())
 	default:
-		return fmt.Sprintf(newMessage, fieldName)
+		return fmt.Sprintf(newMessage, newFieldName)
 	}
 }

@@ -30,20 +30,39 @@ func (uh *UserHandler) Register(c *gin.Context) {
 	var request dto.RegisterRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		validationErrors := utils.ParseValidationErrors(err)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Dữ liệu không hợp lệ", "errors": validationErrors, "code": http.StatusBadRequest})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Dữ liệu không hợp lệ",
+			"errors":  validationErrors,
+			"code":    http.StatusBadRequest,
+		})
 		return
 	}
 
 	if request.Password != request.ConfirmPassword {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Mật khẩu không khớp", "code": http.StatusBadRequest})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Dữ liệu không hợp lệ",
+			"errors": []map[string]string{
+				{
+					"field":   "confirmPassword",
+					"message": "Mật khẩu không khớp",
+				},
+			},
+			"code": http.StatusBadRequest,
+		})
 		return
 	}
 
 	if err := uh.userService.Register(request.Email, request.Password); err != nil {
 
 		c.JSON(http.StatusConflict, gin.H{
-			"code":    http.StatusConflict,
-			"message": err.Error(),
+			"code": http.StatusConflict,
+			"errors": []map[string]string{
+				{
+					"field":   "email",
+					"message": err.Error(),
+				},
+			},
+			"message": "Dữ liệu không hợp lệ",
 		})
 		return
 	}
@@ -52,4 +71,16 @@ func (uh *UserHandler) Register(c *gin.Context) {
 		"code":    http.StatusOK,
 		"message": "Đăng ký thành công. Vui lòng kiểm tra Email",
 	})
+}
+
+func (uh *UserHandler) VerifyCode(c *gin.Context) {
+	var request dto.VerifyCodeRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		validationErrors := utils.ParseValidationErrors(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Dữ liệu không hợp lệ",
+			"errors":  validationErrors,
+			"code":    http.StatusBadRequest,
+		})
+	}
 }

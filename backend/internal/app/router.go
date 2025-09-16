@@ -20,6 +20,7 @@ func router(db *gorm.DB) *gin.Engine {
 	publicRoutes := r.Group("/api/v1")
 	publicRoutes.GET("/ping", userHandler.Ping)
 	publicRoutes.POST("/register", userHandler.Register)
+	publicRoutes.POST("/verify-code", userHandler.VerifyCode)
 
 	return r
 }

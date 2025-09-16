@@ -82,29 +82,20 @@ export function HomePage() {
             );
 
             if (!res.ok) {
-                const apiErrorResponse = res.data as ApiResponseError;
+                const errorRes = res.data as ApiResponseError;
 
-                // map lỗi field vào form
-                if (res.status === 400 && "errors" in apiErrorResponse) {
-                    (apiErrorResponse as ApiErrorDetails).errors.forEach(
-                        (err) => {
-                            if (err.field === "Email") {
-                                form.setError("email", {
-                                    type: "manual",
-                                    message: err.message,
-                                });
-                            } else if (err.field === "Mật khẩu") {
-                                form.setError("password", {
-                                    type: "manual",
-                                    message: err.message,
-                                });
-                            }
-                        }
-                    );
+                if ("errors" in errorRes && Array.isArray(errorRes.errors)) {
+                    errorRes.errors.forEach((err) => {
+                        form.setError(err.field as keyof RegisterFormValues, {
+                            type: "manual",
+                            message: err.message,
+                        });
+                    });
+                } else {
+                    // fallback: chỉ hiển thị ở Alert, không gắn field cụ thể
+                    setApiError(errorRes);
                 }
 
-                // lưu full error để render
-                setApiError(apiErrorResponse);
                 return;
             }
 
@@ -139,10 +130,7 @@ export function HomePage() {
                                 apiError.errors?.length > 0 && (
                                     <ul className="list-disc list-inside mt-2 space-y-1">
                                         {apiError.errors.map((err, idx) => (
-                                            <li key={idx}>
-                                                <strong>{err.field}:</strong>{" "}
-                                                {err.message}
-                                            </li>
+                                            <li key={idx}>{err.message}</li>
                                         ))}
                                     </ul>
                                 )}
