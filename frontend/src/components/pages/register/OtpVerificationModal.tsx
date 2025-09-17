@@ -45,7 +45,7 @@ const otpFormSchema = z.object({
 
 type OtpFormValues = z.infer<typeof otpFormSchema>;
 
-const RESEND_COOLDOWN_SECONDS = 60;
+const RESEND_COOLDOWN_SECONDS = 65;
 
 export function OtpVerificationModal({
     isOpen,
@@ -176,7 +176,17 @@ export function OtpVerificationModal({
                                         Mã OTP
                                     </FormLabel>
                                     <FormControl>
-                                        <InputOTP maxLength={6} {...field}>
+                                        <InputOTP
+                                            maxLength={6}
+                                            {...field}
+                                            onChange={(value) => {
+                                                field.onChange(value);
+                                                // Xóa lỗi API khi người dùng bắt đầu nhập lại
+                                                if (apiError) {
+                                                    setApiError(null);
+                                                }
+                                            }}
+                                        >
                                             <InputOTPGroup className="flex justify-center w-full">
                                                 <InputOTPSlot index={0} />
                                                 <InputOTPSlot index={1} />
