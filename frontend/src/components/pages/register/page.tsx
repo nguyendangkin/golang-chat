@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -58,7 +57,6 @@ const formSchema = z
 type RegisterFormValues = z.infer<typeof formSchema>;
 
 export function Register() {
-    const router = useRouter();
     const [apiError, setApiError] = useState<ApiResponseError | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false); // State để quản lý modal OTP
