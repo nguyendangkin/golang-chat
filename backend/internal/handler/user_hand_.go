@@ -80,3 +80,27 @@ func (uh *UserHandler) VerifyCode(c *gin.Context) {
 		"message": "Xác thực thành công",
 	})
 }
+
+func (uh *UserHandler) ResendVerifyCode(c *gin.Context) {
+	var request dto.ResendVerifyCodeRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		validationErrors := utils.ParseValidationErrors(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"errors": validationErrors,
+		})
+		return
+	}
+
+	if err := uh.userService.ResendVerifyCode(request.Email); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Vui lòng kiểm tra lại Email",
+	})
+
+}
