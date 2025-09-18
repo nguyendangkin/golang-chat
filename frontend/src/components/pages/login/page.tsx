@@ -12,14 +12,16 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { OtpVerificationModalForLogin } from "@/components/pages/login/OtpVerificationModalForLogin";
-import { login } from "@/actions/requestApi";
+import { authenticate } from "@/actions/requestApi";
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface ApiFieldError {
     field: string;
@@ -39,6 +41,14 @@ interface ApiErrorDefault {
 
 type ApiResponseError = ApiErrorDetails | ApiErrorDefault;
 
+const formSchema = z.object({
+    email: z
+        .string()
+        .min(1, "Email không được để trống")
+        .email("Email không hợp lệ"),
+    password: z.string().min(1, "Mật khẩu không được để trống"),
+});
+
 type LoginFormValues = z.infer<
     z.ZodObject<{
         email: z.ZodString;
@@ -54,7 +64,7 @@ export default function Login() {
     const router = useRouter();
 
     const form = useForm<LoginFormValues>({
-        // resolver: zodResolver(formSchema), // Loại bỏ dòng này để tắt Zod validation
+        resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
             password: "",
@@ -65,37 +75,28 @@ export default function Login() {
         setIsLoading(true);
         setApiError(null); // Clear previous API errors
 
-        const res = await login(values.email, values.password);
+        const res = await authenticate(values.email, values.password);
 
-        if (!res.ok) {
-            const errorRes = res.data as ApiResponseError;
-
-            // Check for the specific 423 user inactive error
-            if (
-                errorRes &&
-                errorRes.code === 423 &&
-                errorRes.message === "user is inactive"
-            ) {
-                setUserEmailForOtp(values.email);
-                setIsOtpModalOpen(true);
-                // Không hiển thị lỗi Alert ở đây vì modal OTP sẽ xử lý thông báo
-            } else {
-                // For any other API error, display it in the general Alert
-                setApiError(errorRes);
-                // Xóa bất kỳ lỗi form nào có thể còn sót lại (mặc dù không dùng Zod validation nữa)
+        switch (res.code) {
+            case 0: // login fail chung
+            case 1: // login fail 401
+                setApiError({ code: res.code, message: res.error });
                 form.clearErrors("email");
                 form.clearErrors("password");
-            }
-            setIsLoading(false);
-            return;
+                setIsLoading(false);
+                return;
+            case 2: // user inactive 423
+                setUserEmailForOtp(values.email);
+                setIsOtpModalOpen(true);
+                setIsLoading(false);
+                return;
+            case 3: // success
+                console.log("Đăng nhập thành công:", res.data);
+                toast.success("Đăng nhập thành công!");
+                router.push("/");
+                setIsLoading(false);
+                return;
         }
-
-        // Successful login
-        console.log("Đăng nhập thành công:", res.data);
-        toast.success(res.data.message || "Đăng nhập thành công!");
-        // Redirect to dashboard or home page
-        router.push("/");
-        setIsLoading(false);
     };
 
     return (
@@ -138,10 +139,11 @@ export default function Login() {
                                         <Input
                                             placeholder="vd: user@example.com"
                                             {...field}
-                                            type="text" // Đổi về type="text" nếu không muốn browser tự validate email
+                                            type="text"
                                         />
                                     </FormControl>
-                                    {/* <FormMessage /> // Có thể loại bỏ hoàn toàn nếu không muốn hiện gì dưới trường */}
+                                    <FormMessage />{" "}
+                                    {/* Hiển thị lỗi validate email */}
                                 </FormItem>
                             )}
                         />
@@ -158,10 +160,12 @@ export default function Login() {
                                             type="password"
                                         />
                                     </FormControl>
-                                    {/* <FormMessage /> // Có thể loại bỏ hoàn toàn nếu không muốn hiện gì dưới trường */}
+                                    <FormMessage />{" "}
+                                    {/* Hiển thị lỗi validate password */}
                                 </FormItem>
                             )}
                         />
+
                         <Button
                             type="submit"
                             className="w-full"

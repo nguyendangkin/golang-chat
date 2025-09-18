@@ -1,5 +1,8 @@
 "use server";
 
+import { signIn } from "@/auth";
+import decodeJwt from "@/utils/decodeJwt";
+
 function getBackendBaseUrl(): string {
     const BACKEND_API_BASE_URL = process.env.BACKEND_API_URL;
     if (!BACKEND_API_BASE_URL) {
@@ -123,5 +126,63 @@ export async function login(email: string, password: string) {
             status: 500,
             data: { message: "Không thể kết nối đến server" },
         };
+    }
+}
+
+export async function authenticate(email: string, password: string) {
+    interface JwtPayload {
+        id: string | number;
+        email: string;
+        role: string;
+        exp?: number; // thời điểm hết hạn (epoch), optional cũng được
+        orig_iat?: number; // issued at, optional
+    }
+
+    try {
+        const res = await login(email, password);
+
+        if (!res.ok) {
+            const errorRes = res.data;
+            if (errorRes.code === 401) {
+                return {
+                    code: 1,
+                    error: errorRes.message || "Đăng nhập thất bại",
+                };
+            }
+            if (errorRes.code === 423) {
+                return {
+                    code: 2,
+                    error: errorRes.message || "Tài khoản chưa được kích hoạt",
+                };
+            }
+            return { code: 0, error: errorRes.message || "Đăng nhập thất bại" };
+        }
+
+        const { token, expire } = res.data;
+
+        // 👇 Decode JWT để lấy user info
+        const payload = decodeJwt(token) as JwtPayload;
+
+        const user = {
+            id: payload.id.toString(),
+            email: payload.email,
+            role: payload.role,
+            access_token: token,
+            expire,
+        };
+
+        // Tạo session NextAuth
+        const authResult = await signIn("credentials", {
+            ...user,
+            redirect: false,
+        });
+
+        if (authResult?.error) {
+            return { code: 0, error: "Không tạo được session" };
+        }
+
+        return { code: 3, data: user };
+    } catch {
+        return { code: 0, error: "Có lỗi xảy ra" };
     }
 }

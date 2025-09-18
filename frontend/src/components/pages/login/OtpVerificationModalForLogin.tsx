@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react"; // Import useCallback
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { resendVerifyCode, verifyCode } from "@/actions/requestApi"; // Reusing existing API calls
+import { resendVerifyCode, verifyCode } from "@/actions/requestApi";
 import { useRouter } from "next/navigation";
 
 interface OtpVerificationModalForLoginProps {
@@ -67,26 +67,47 @@ export function OtpVerificationModalForLogin({
         },
     });
 
+    // Bọc handleResendOtp trong useCallback
+    const handleResendOtp = useCallback(async () => {
+        if (isResending) return;
+
+        setIsResending(true);
+        setApiError(null);
+
+        const res = await resendVerifyCode(email);
+
+        if (!res.ok) {
+            setApiError(res.data?.message || "Gửi lại OTP thất bại.");
+            toast.error(res.data?.message || "Gửi lại OTP thất bại.");
+            setIsResending(false);
+            return;
+        }
+
+        toast.success(res.data.message || "Đã gửi lại OTP!");
+        setCooldown(RESEND_COOLDOWN_SECONDS);
+        setIsResending(false);
+    }, [email, isResending]); // email và isResending là các dependencies của hàm này
+
     // Effect to manage cooldown and initialization when modal opens/closes
     useEffect(() => {
         if (isOpen) {
-            // Only reset and initialize cooldown the first time the modal opens
             if (!hasInitializedRef.current) {
                 form.reset();
                 setApiError(null);
-                setCooldown(RESEND_COOLDOWN_SECONDS); // Start cooldown immediately upon opening
+                handleResendOtp(); // Gọi hàm ổn định đã được bọc trong useCallback
                 hasInitializedRef.current = true;
             }
         } else {
-            // When modal closes, clear interval and reset all states
             if (timerRef.current) {
                 clearInterval(timerRef.current);
                 timerRef.current = null;
             }
             setCooldown(0);
-            hasInitializedRef.current = false; // Reset flag
+            hasInitializedRef.current = false;
+            setIsResending(false);
+            setIsLoading(false);
         }
-    }, [isOpen, form]);
+    }, [isOpen, form, handleResendOtp]); // Thêm handleResendOtp vào dependency array
 
     // Effect to manage the countdown timer
     useEffect(() => {
@@ -112,7 +133,7 @@ export function OtpVerificationModalForLogin({
                 timerRef.current = null;
             }
         };
-    }, [cooldown, isOpen]); // Rerun if cooldown or isOpen changes
+    }, [cooldown, isOpen]);
 
     const onSubmit = async (values: OtpFormValues) => {
         setIsLoading(true);
@@ -122,6 +143,7 @@ export function OtpVerificationModalForLogin({
 
         if (!res.ok) {
             setApiError(res.data?.message || "Xác thực OTP thất bại.");
+            toast.error(res.data?.message || "Xác thực OTP thất bại.");
             setIsLoading(false);
             return;
         }
@@ -130,28 +152,9 @@ export function OtpVerificationModalForLogin({
             res.data.message ||
                 "Xác thực tài khoản thành công! Vui lòng đăng nhập lại."
         );
-        onClose(); // Close the OTP modal
-        router.push("/login"); // User might need to re-login after activation
+        onClose();
+        router.push("/login");
         setIsLoading(false);
-    };
-
-    const handleResendOtp = async () => {
-        if (cooldown > 0) return; // Prevent resending if cooldown is active
-
-        setIsResending(true);
-        setApiError(null);
-
-        const res = await resendVerifyCode(email);
-
-        if (!res.ok) {
-            setApiError(res.data?.message || "Gửi lại OTP thất bại.");
-            setIsResending(false);
-            return;
-        }
-
-        toast.success(res.data.message || "Đã gửi lại OTP!");
-        setCooldown(RESEND_COOLDOWN_SECONDS); // Restart cooldown
-        setIsResending(false);
     };
 
     return (
@@ -185,7 +188,6 @@ export function OtpVerificationModalForLogin({
                                             {...field}
                                             onChange={(value) => {
                                                 field.onChange(value);
-                                                // Clear API error when user starts typing again
                                                 if (apiError) {
                                                     setApiError(null);
                                                 }

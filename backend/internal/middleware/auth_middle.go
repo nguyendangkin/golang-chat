@@ -126,6 +126,12 @@ func unauthorized() func(c *gin.Context, code int, message string) {
 				"message": message,
 			})
 			return
+		case jwt.ErrFailedAuthentication.Error():
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "Email hoặc mật khẩu không đúng",
+			})
+			return
 		}
 		c.JSON(code, gin.H{
 			"code":    code,
