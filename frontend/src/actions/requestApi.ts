@@ -97,3 +97,31 @@ export async function resendVerifyCode(email: string) {
         };
     }
 }
+
+export async function login(email: string, password: string) {
+    try {
+        const LOGIN_ENDPOINT = `${getBackendBaseUrl()}/api/v1/login`;
+
+        const response = await fetch(LOGIN_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
+}
