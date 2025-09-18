@@ -37,3 +37,16 @@ func (ur *UserRepository) FindByEmail(email string) (*model.User, error) {
 
 	return &user, nil
 }
+
+func (ur *UserRepository) FindById(id uint) (*model.User, error) {
+	var user model.User
+	err := ur.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}

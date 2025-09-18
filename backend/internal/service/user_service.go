@@ -183,3 +183,11 @@ func (us *UserService) ResendVerifyCode(email string) error {
 
 	return nil
 }
+
+func (s *UserService) GetUserByID(id uint) (*model.User, error) {
+	return s.repo.FindById(id)
+}
+
+func (s *UserService) GetUserByEmail(email string) (*model.User, error) {
+	return s.repo.FindByEmail(email)
+}

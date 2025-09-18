@@ -25,6 +25,9 @@ type Config struct {
 		EmailAddress  string
 		EmailPassword string
 	}
+	Auth struct {
+		SecretKey string
+	}
 }
 
 func LoadConfig() *Config {

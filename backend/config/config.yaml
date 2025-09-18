@@ -9,4 +9,5 @@ database:
 emailService:
   emailAddress: luadaowedsite@gmail.com
   emailPassword: qlsvgocfnsnfacxe
-
+auth:
+  secretKey: ca39d819-8726-490d-bad2-b8af7ae176e9
