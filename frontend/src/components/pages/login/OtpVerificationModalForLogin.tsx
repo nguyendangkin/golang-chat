@@ -58,6 +58,7 @@ export function OtpVerificationModalForLogin({
     const [apiError, setApiError] = useState<string | null>(null);
     const [cooldown, setCooldown] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isOtpSent, setIsOtpSent] = useState(false);
     const hasInitializedRef = useRef(false);
 
     const form = useForm<OtpFormValues>({
@@ -78,14 +79,15 @@ export function OtpVerificationModalForLogin({
 
         if (!res.ok) {
             setApiError(res.data?.message || "Gửi lại OTP thất bại.");
-            toast.error(res.data?.message || "Gửi lại OTP thất bại.");
             setIsResending(false);
+            setIsOtpSent(false); // ❌ thất bại thì reset
             return;
         }
 
         toast.success(res.data.message || "Đã gửi lại OTP!");
         setCooldown(RESEND_COOLDOWN_SECONDS);
         setIsResending(false);
+        setIsOtpSent(true); // ✅ thành công thì mở nút xác thực
     }, [email, isResending]); // email và isResending là các dependencies của hàm này
 
     // Effect to manage cooldown and initialization when modal opens/closes
@@ -94,6 +96,7 @@ export function OtpVerificationModalForLogin({
             if (!hasInitializedRef.current) {
                 form.reset();
                 setApiError(null);
+                setIsOtpSent(false); // 🔒 reset trạng thái
                 handleResendOtp(); // Gọi hàm ổn định đã được bọc trong useCallback
                 hasInitializedRef.current = true;
             }
@@ -106,6 +109,7 @@ export function OtpVerificationModalForLogin({
             hasInitializedRef.current = false;
             setIsResending(false);
             setIsLoading(false);
+            setIsOtpSent(false); // 🔒 khi đóng cũng reset
         }
     }, [isOpen, form, handleResendOtp]); // Thêm handleResendOtp vào dependency array
 
@@ -143,7 +147,6 @@ export function OtpVerificationModalForLogin({
 
         if (!res.ok) {
             setApiError(res.data?.message || "Xác thực OTP thất bại.");
-            toast.error(res.data?.message || "Xác thực OTP thất bại.");
             setIsLoading(false);
             return;
         }
@@ -228,7 +231,10 @@ export function OtpVerificationModalForLogin({
                                         ? `Gửi lại (${cooldown}s)`
                                         : "Gửi lại OTP"}
                                 </Button>
-                                <Button type="submit" disabled={isLoading}>
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading || !isOtpSent}
+                                >
                                     {isLoading
                                         ? "Đang xác thực..."
                                         : "Xác thực"}
