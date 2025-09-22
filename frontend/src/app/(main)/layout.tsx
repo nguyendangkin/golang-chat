@@ -1,3 +1,4 @@
+import ContentUi from "@/components/layout/ContentUi";
 import HeaderUi from "@/components/layout/HeaderUi";
 
 export default function MainLayout({
@@ -8,7 +9,7 @@ export default function MainLayout({
     return (
         <>
             <HeaderUi />
-            {children}
+            <ContentUi>{children}</ContentUi>
         </>
     );
 }
