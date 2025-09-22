@@ -25,11 +25,13 @@ func router(db *gorm.DB) *gin.Engine {
 	publicRoutes.POST("/verify-code", userHandler.VerifyCode)
 	publicRoutes.POST("/resend-verify-code", userHandler.ResendVerifyCode)
 	publicRoutes.POST("/login", authMiddleware.LoginHandler)
+	publicRoutes.GET("/refresh-token", authMiddleware.RefreshHandler) // public nhưng cần jwt
 
 	// route cần jwt
 	protectedRoutes := r.Group("/api/v1")
 	protectedRoutes.Use(authMiddleware.MiddlewareFunc())
 	{
+		// cho cả user và admin
 		protectedRoutes.GET("me", func(c *gin.Context) {
 			c.String(http.StatusOK, "protected")
 		})

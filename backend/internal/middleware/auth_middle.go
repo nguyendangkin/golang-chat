@@ -18,6 +18,8 @@ import (
 var identityKey = "id"
 
 var ErrInactive = errors.New("user is inactive")
+var ErrTokenRefreshExpired = errors.New("token is expired")
+var ErrTokenExpired = errors.New("Token is expired") //lint:ignore ST1005 - Giữ nguyên format
 
 func AuthMiddleware(us *service.UserService) *jwt.GinJWTMiddleware {
 	cfg := config.LoadConfig()
@@ -25,8 +27,8 @@ func AuthMiddleware(us *service.UserService) *jwt.GinJWTMiddleware {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "All Zone",
 		Key:         []byte(cfg.Auth.SecretKey),
-		Timeout:     time.Second * 60,
-		MaxRefresh:  time.Minute * 5,
+		Timeout:     time.Second * 30,
+		MaxRefresh:  time.Minute * 1,
 		IdentityKey: identityKey,
 		PayloadFunc: payloadFunc(),
 
@@ -132,7 +134,14 @@ func unauthorized() func(c *gin.Context, code int, message string) {
 				"message": "Email hoặc mật khẩu không đúng",
 			})
 			return
+		case ErrTokenExpired.Error():
+			c.JSON(http.StatusForbidden, gin.H{
+				"code":    http.StatusForbidden,
+				"message": "Token đã hết hạn",
+			})
+			return
 		}
+
 		c.JSON(code, gin.H{
 			"code":    code,
 			"message": message,
