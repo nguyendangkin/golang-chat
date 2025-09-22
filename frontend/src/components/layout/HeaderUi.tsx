@@ -6,7 +6,7 @@ export default function HeaderUi() {
     return (
         <>
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-[#FAFAFA] border-gray-200">
                 <div className="flex items-center justify-between h-16 px-4">
                     {/* Logo - Left aligned, no container constraints */}
                     <div className="flex items-center">

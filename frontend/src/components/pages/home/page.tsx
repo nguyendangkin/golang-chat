@@ -110,38 +110,30 @@ const formatNumber = (num: number) => {
 
 export default function Feed() {
     return (
-        <div className="max-w-xl mx-auto bg-white">
+        <div className="max-w-xl mx-auto bg-white border rounded-2xl">
             {/* Create Thread */}
-            <div className="border-b border-gray-100 px-4 py-4">
-                <div className="flex gap-3">
-                    <Avatar className="h-10 w-10">
+            <div className=" border-b  px-4 py-3">
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9">
                         <AvatarImage src="https://i.pravatar.cc/100?img=11" />
                         <AvatarFallback className="bg-gray-200 text-gray-600">
                             U
                         </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                        <div className="text-gray-500 text-sm mb-2">
-                            Dành cho bạn
-                        </div>
-                        <textarea
-                            placeholder="Có gì mới?"
-                            className="w-full text-base placeholder-gray-400 resize-none border-none outline-none bg-transparent"
-                            rows={2}
-                        />
-                        <div className="flex items-center justify-between mt-3">
-                            <div className="flex gap-4">
-                                <Camera className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                                <Smile className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                            </div>
-                            <Button
-                                size="sm"
-                                className="bg-black hover:bg-gray-800 text-white px-6 py-1.5 rounded-full text-sm font-medium"
-                            >
-                                Đăng
-                            </Button>
-                        </div>
-                    </div>
+
+                    <textarea
+                        placeholder="Có gì mới?"
+                        className="flex-1 text-sm placeholder-gray-400 resize-none border-none outline-none bg-transparent"
+                        rows={1}
+                    />
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="px-4 py-1 rounded-md text-sm font-medium"
+                    >
+                        Đăng
+                    </Button>
                 </div>
             </div>
 
