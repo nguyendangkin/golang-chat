@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod"; // Loại bỏ zodResolver
-import * as z from "zod"; // Vẫn giữ để định nghĩa type, nhưng không dùng để resolve
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -49,18 +48,13 @@ const formSchema = z.object({
     password: z.string().min(1, "Mật khẩu không được để trống"),
 });
 
-type LoginFormValues = z.infer<
-    z.ZodObject<{
-        email: z.ZodString;
-        password: z.ZodString;
-    }>
->;
+type LoginFormValues = z.infer<typeof formSchema>;
 
 export default function Login() {
     const [apiError, setApiError] = useState<ApiResponseError | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isOtpModalOpen, setIsOtpModalOpen] = useState(false); // State to manage OTP modal
-    const [userEmailForOtp, setUserEmailForOtp] = useState(""); // To pass email to OTP modal
+    const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+    const [userEmailForOtp, setUserEmailForOtp] = useState("");
     const router = useRouter();
 
     const form = useForm<LoginFormValues>({
@@ -73,24 +67,24 @@ export default function Login() {
 
     const onSubmit = async (values: LoginFormValues) => {
         setIsLoading(true);
-        setApiError(null); // Clear previous API errors
+        setApiError(null);
 
         const res = await authenticate(values.email, values.password);
 
         switch (res.code) {
-            case 0: // login fail chung
-            case 1: // login fail 401
+            case 0:
+            case 1:
                 setApiError({ code: res.code, message: res.error });
                 form.clearErrors("email");
                 form.clearErrors("password");
                 setIsLoading(false);
                 return;
-            case 2: // user inactive 423
+            case 2:
                 setUserEmailForOtp(values.email);
                 setIsOtpModalOpen(true);
                 setIsLoading(false);
                 return;
-            case 3: // success
+            case 3:
                 console.log("Đăng nhập thành công:", res.data);
                 toast.success("Đăng nhập thành công!");
                 router.push("/");
@@ -100,21 +94,21 @@ export default function Login() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-                <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-                    Đăng Nhập Tài Khoản
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg dark:bg-gray-800">
+                <h2 className="text-center text-2xl font-semibold text-gray-900 dark:text-white">
+                    Đăng nhập tài khoản
                 </h2>
 
                 {apiError && (
-                    <Alert variant="destructive">
+                    <Alert variant="destructive" className="mt-4">
                         <ExclamationTriangleIcon className="h-4 w-4" />
                         <AlertTitle>Lỗi đăng nhập!</AlertTitle>
                         <AlertDescription>
                             <p>{apiError.message}</p>
                             {"errors" in apiError &&
                                 apiError.errors?.length > 0 && (
-                                    <ul className="list-disc list-inside mt-2 space-y-1">
+                                    <ul className="mt-2 list-disc list-inside space-y-1">
                                         {apiError.errors.map((err, idx) => (
                                             <li key={idx}>{err.message}</li>
                                         ))}
@@ -127,23 +121,25 @@ export default function Login() {
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4"
+                        className="mt-6 space-y-5"
                     >
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="vd: user@example.com"
                                             {...field}
-                                            type="text"
+                                            type="email"
+                                            className="h-11 rounded-lg"
                                         />
                                     </FormControl>
-                                    <FormMessage />{" "}
-                                    {/* Hiển thị lỗi validate email */}
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -152,31 +148,34 @@ export default function Login() {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Mật khẩu</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Mật khẩu
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="••••••••"
                                             {...field}
                                             type="password"
+                                            className="h-11 rounded-lg"
                                         />
                                     </FormControl>
-                                    <FormMessage />{" "}
-                                    {/* Hiển thị lỗi validate password */}
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
 
                         <Button
                             type="submit"
-                            className="w-full"
+                            variant="outline"
                             disabled={isLoading}
+                            className="w-full rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer"
                         >
-                            {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
+                            {isLoading ? "Đang xử lý..." : "Đăng nhập"}
                         </Button>
                     </form>
                 </Form>
 
-                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                     Chưa có tài khoản?{" "}
                     <Link
                         href="/register"
@@ -187,7 +186,7 @@ export default function Login() {
                 </p>
             </div>
 
-            {/* OTP Verification Modal for Login */}
+            {/* OTP Verification Modal */}
             <OtpVerificationModalForLogin
                 isOpen={isOtpModalOpen}
                 onClose={() => setIsOtpModalOpen(false)}

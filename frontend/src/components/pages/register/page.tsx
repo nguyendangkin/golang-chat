@@ -113,21 +113,21 @@ export function Register() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-                <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-                    Đăng Ký Tài Khoản
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg dark:bg-gray-800">
+                <h2 className="text-center text-2xl font-semibold text-gray-900 dark:text-white">
+                    Đăng ký tài khoản
                 </h2>
 
                 {apiError && (
-                    <Alert variant="destructive">
+                    <Alert variant="destructive" className="mt-4">
                         <ExclamationTriangleIcon className="h-4 w-4" />
-                        <AlertTitle>Lỗi đăng ký!</AlertTitle>
+                        <AlertTitle>Lỗi đăng ký</AlertTitle>
                         <AlertDescription>
                             <p>{apiError.message}</p>
                             {"errors" in apiError &&
                                 apiError.errors?.length > 0 && (
-                                    <ul className="list-disc list-inside mt-2 space-y-1">
+                                    <ul className="mt-2 list-disc list-inside space-y-1">
                                         {apiError.errors.map((err, idx) => (
                                             <li key={idx}>{err.message}</li>
                                         ))}
@@ -140,19 +140,22 @@ export function Register() {
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4"
+                        className="mt-6 space-y-5"
                     >
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="vd: user@example.com"
                                             {...field}
                                             type="email"
+                                            className="h-11 rounded-lg"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -164,12 +167,15 @@ export function Register() {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Mật khẩu</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Mật khẩu
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="••••••••"
                                             {...field}
                                             type="password"
+                                            className="h-11 rounded-lg"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -181,29 +187,34 @@ export function Register() {
                             name="confirmPassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Xác nhận mật khẩu</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Xác nhận mật khẩu
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="••••••••"
                                             {...field}
                                             type="password"
+                                            className="h-11 rounded-lg"
                                         />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
+
                         <Button
                             type="submit"
-                            className="w-full"
+                            variant="outline"
                             disabled={isLoading}
+                            className="w-full rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer"
                         >
-                            {isLoading ? "Đang xử lý..." : "Đăng Ký"}
+                            {isLoading ? "Đang xử lý..." : "Đăng ký"}
                         </Button>
                     </form>
                 </Form>
 
-                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                     Đã có tài khoản?{" "}
                     <Link
                         href="/login"
