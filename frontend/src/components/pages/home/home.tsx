@@ -108,7 +108,7 @@ const formatNumber = (num: number) => {
     return num.toString();
 };
 
-export default function Feed() {
+export default function Home() {
     return (
         <div className="max-w-xl mx-auto bg-white border rounded-2xl">
             {/* Create Thread */}
