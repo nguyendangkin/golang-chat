@@ -32,8 +32,10 @@ func router(db *gorm.DB) *gin.Engine {
 	protectedRoutes.Use(authMiddleware.MiddlewareFunc())
 	{
 		// cho cả user và admin
-		protectedRoutes.GET("me", func(c *gin.Context) {
-			c.String(http.StatusOK, "protected")
+		protectedRoutes.GET("profile", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "profile nè",
+			})
 		})
 	}
 

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import {
     Form,
     FormControl,
@@ -86,7 +85,6 @@ export default function Login() {
                 return;
             case 3:
                 console.log("Đăng nhập thành công:", res.data);
-                toast.success("Đăng nhập thành công!");
                 router.push("/");
                 setIsLoading(false);
                 return;

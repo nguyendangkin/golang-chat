@@ -5,15 +5,8 @@ export default auth((req) => {
     const { pathname } = req.nextUrl;
     const isAuthenticated = !!req.auth;
 
-    console.log("🚀 MIDDLEWARE:", {
-        pathname,
-        isAuthenticated,
-        hasAuth: !!req.auth,
-        timestamp: new Date().toISOString(),
-    });
-
     // Public routes không cần authentication
-    const publicRoutes = ["/login", "/register"];
+    const publicRoutes = ["/", "/login", "/register"];
     const isPublicRoute = publicRoutes.includes(pathname);
 
     // Nếu chưa authenticated và không phải public route

@@ -1,7 +1,8 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import decodeJwt from "@/utils/decodeJwt";
+import { auth } from "@/auth";
 
 function getBackendBaseUrl(): string {
     const BACKEND_API_BASE_URL = process.env.BACKEND_API_URL;
@@ -101,6 +102,9 @@ export async function resendVerifyCode(email: string) {
     }
 }
 
+export async function logout() {
+    await signOut({ redirectTo: "/login" });
+}
 export async function login(email: string, password: string) {
     try {
         const LOGIN_ENDPOINT = `${getBackendBaseUrl()}/api/v1/login`;
@@ -184,5 +188,44 @@ export async function authenticate(email: string, password: string) {
         return { code: 3, data: user };
     } catch {
         return { code: 0, error: "Có lỗi xảy ra" };
+    }
+}
+
+export async function getProfile() {
+    try {
+        // gọi auth() bên trong function, trong request scope
+        const session = await auth();
+
+        if (!session || !session?.user.access_token) {
+            return {
+                ok: false,
+                status: 401,
+                data: { message: "Không tìm thấy token trong session" },
+            };
+        }
+
+        const PROFILE_ENDPOINT = `${getBackendBaseUrl()}/api/v1/profile`;
+
+        const response = await fetch(PROFILE_ENDPOINT, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.user.access_token}`,
+            },
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
     }
 }
