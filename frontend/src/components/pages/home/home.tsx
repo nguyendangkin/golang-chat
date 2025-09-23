@@ -142,9 +142,7 @@ export default function Home() {
                 <div
                     key={post.id}
                     className={`px-4 py-4 ${
-                        index !== mockPosts.length - 1
-                            ? "border-b border-gray-100"
-                            : ""
+                        index !== mockPosts.length - 1 ? "border-b" : ""
                     } hover:bg-gray-50/50 transition-colors cursor-pointer`}
                 >
                     <div className="flex gap-3">
@@ -191,7 +189,7 @@ export default function Home() {
                             {post.images && post.images.length > 0 && (
                                 <div className="mb-3">
                                     <div
-                                        className={`grid gap-1 rounded-xl overflow-hidden ${
+                                        className={`grid gap-1 rounded-2xl overflow-hidden ${
                                             post.images.length === 1
                                                 ? "grid-cols-1"
                                                 : post.images.length === 2
