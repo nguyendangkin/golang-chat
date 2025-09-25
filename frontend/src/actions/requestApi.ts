@@ -138,8 +138,6 @@ export async function authenticate(email: string, password: string) {
         id: string | number;
         email: string;
         role: string;
-        exp?: number; // thời điểm hết hạn (epoch), optional cũng được
-        orig_iat?: number; // issued at, optional
     }
 
     try {
@@ -162,7 +160,7 @@ export async function authenticate(email: string, password: string) {
             return { code: 0, error: errorRes.message || "Đăng nhập thất bại" };
         }
 
-        const { token, expire } = res.data;
+        const { token } = res.data;
 
         // 👇 Decode JWT để lấy user info
         const payload = decodeJwt(token) as JwtPayload;
@@ -171,8 +169,7 @@ export async function authenticate(email: string, password: string) {
             id: payload.id.toString(),
             email: payload.email,
             role: payload.role,
-            access_token: token,
-            expire,
+            token,
         };
 
         // Tạo session NextAuth
@@ -196,7 +193,7 @@ export async function getProfile() {
         // gọi auth() bên trong function, trong request scope
         const session = await auth();
 
-        if (!session || !session?.user.access_token) {
+        if (!session?.user.token) {
             return {
                 ok: false,
                 status: 401,
@@ -210,7 +207,7 @@ export async function getProfile() {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${session.user.access_token}`,
+                Authorization: `Bearer ${session.user.token}`,
             },
         });
 

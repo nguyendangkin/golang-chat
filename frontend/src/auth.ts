@@ -5,8 +5,7 @@ export interface IUser {
     id: string;
     email: string;
     role: string;
-    access_token: string;
-    expire: string;
+    token: string;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -16,8 +15,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 id: {},
                 email: {},
                 role: {},
-                access_token: {},
-                expire: {},
+                token: {},
             },
             authorize: async (credentials) => {
                 if (!credentials?.email) return null;
@@ -27,8 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     id: credentials.id as string,
                     email: credentials.email as string,
                     role: credentials.role as string,
-                    access_token: credentials.access_token as string,
-                    expire: credentials.expire as string,
+                    token: credentials.token as string,
                 };
             },
         }),
