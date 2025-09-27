@@ -30,6 +30,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
         }),
     ],
+    session: {
+        strategy: "jwt", // session dựa trên JWT
+    },
     callbacks: {
         jwt({ token, user }) {
             if (user) token.user = user as IUser;

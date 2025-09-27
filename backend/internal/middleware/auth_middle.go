@@ -28,7 +28,7 @@ func AuthMiddleware(us *service.UserService) *jwt.GinJWTMiddleware {
 		Realm:       "All Zone",
 		Key:         []byte(cfg.Auth.SecretKey),
 		Timeout:     time.Second * 30,
-		MaxRefresh:  time.Minute * 1,
+		MaxRefresh:  time.Minute * 10,
 		IdentityKey: identityKey,
 		PayloadFunc: payloadFunc(),
 
