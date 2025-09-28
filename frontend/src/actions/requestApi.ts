@@ -4,12 +4,6 @@ import { signIn, signOut } from "@/auth";
 import decodeJwt from "@/utils/decodeJwt";
 import { auth } from "@/auth";
 
-interface JwtPayload {
-    id: string | number;
-    email: string;
-    role: string;
-}
-
 function getBackendBaseUrl(): string {
     const BACKEND_API_BASE_URL = process.env.BACKEND_API_URL;
     if (!BACKEND_API_BASE_URL) {
@@ -19,114 +13,133 @@ function getBackendBaseUrl(): string {
     }
     return BACKEND_API_BASE_URL;
 }
-async function makeAuthenticatedRequest(
-    endpoint: string,
-    options: RequestInit = {}
-) {
-    try {
-        const session = await auth();
-
-        if (!session?.user.token) {
-            return {
-                ok: false,
-                status: 401,
-                data: { message: "Không tìm thấy token trong session" },
-            };
-        }
-
-        const url = `${getBackendBaseUrl()}${endpoint}`;
-
-        // Thực hiện request đầu tiên
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session.user.token}`,
-                ...options.headers,
-            },
-        });
-
-        const data = await response.json();
-
-        return {
-            ok: response.ok,
-            status: response.status,
-            data,
-        };
-    } catch (error) {
-        console.error(error);
-        return {
-            ok: false,
-            status: 500,
-            data: { message: "Không thể kết nối đến server" },
-        };
-    }
-}
-
-async function makePublicRequest(endpoint: string, options: RequestInit = {}) {
-    try {
-        const url = `${getBackendBaseUrl()}${endpoint}`;
-
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                "Content-Type": "application/json",
-                ...options.headers,
-            },
-        });
-
-        const data = await response.json();
-        return {
-            ok: response.ok,
-            status: response.status,
-            data,
-        };
-    } catch {
-        return {
-            ok: false,
-            status: 500,
-            data: { message: "Không thể kết nối đến server" },
-        };
-    }
-}
 
 export async function registerUser(
     email: string,
     password: string,
     confirmPassword: string
 ) {
-    return makePublicRequest("/api/v1/register", {
-        method: "POST",
-        body: JSON.stringify({ email, password, confirmPassword }),
-    });
+    try {
+        const REGISTER_ENDPOINT = `${getBackendBaseUrl()}/api/v1/register`;
+
+        const response = await fetch(REGISTER_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password, confirmPassword }),
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
 }
 
 export async function verifyCode(email: string, code: string) {
-    return makePublicRequest("/api/v1/verify-code", {
-        method: "POST",
-        body: JSON.stringify({ email, code }),
-    });
+    try {
+        const VERIFY_ENDPOINT = `${getBackendBaseUrl()}/api/v1/verify-code`;
+
+        const response = await fetch(VERIFY_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, code }),
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
 }
 
 export async function resendVerifyCode(email: string) {
-    return makePublicRequest("/api/v1/resend-verify-code", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-    });
-}
+    try {
+        const RESEND_ENDPOINT = `${getBackendBaseUrl()}/api/v1/resend-verify-code`;
 
-export async function login(email: string, password: string) {
-    return makePublicRequest("/api/v1/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-    });
+        const response = await fetch(RESEND_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
 }
 
 export async function logout() {
     await signOut({ redirectTo: "/login" });
 }
+export async function login(email: string, password: string) {
+    try {
+        const LOGIN_ENDPOINT = `${getBackendBaseUrl()}/api/v1/login`;
+
+        const response = await fetch(LOGIN_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
+}
 
 export async function authenticate(email: string, password: string) {
+    interface JwtPayload {
+        id: string | number;
+        email: string;
+        role: string;
+    }
+
     try {
         const res = await login(email, password);
 
@@ -149,7 +162,7 @@ export async function authenticate(email: string, password: string) {
 
         const { token } = res.data;
 
-        // Decode JWT để lấy user info
+        // 👇 Decode JWT để lấy user info
         const payload = decodeJwt(token) as JwtPayload;
 
         const user = {
@@ -175,15 +188,41 @@ export async function authenticate(email: string, password: string) {
     }
 }
 
-//  AUTHENTICATED API
 export async function getProfile() {
-    return makeAuthenticatedRequest("/api/v1/profile", {
-        method: "GET",
-    });
-}
+    try {
+        // gọi auth() bên trong function, trong request scope
+        const session = await auth();
 
-export async function getRefreshToken() {
-    return makeAuthenticatedRequest("/api/v1/refresh-token", {
-        method: "GET",
-    });
+        if (!session?.user.token) {
+            return {
+                ok: false,
+                status: 401,
+                data: { message: "Không tìm thấy token trong session" },
+            };
+        }
+
+        const PROFILE_ENDPOINT = `${getBackendBaseUrl()}/api/v1/profile`;
+
+        const response = await fetch(PROFILE_ENDPOINT, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.user.token}`,
+            },
+        });
+
+        const data = await response.json();
+        return {
+            ok: response.ok,
+            status: response.status,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return {
+            ok: false,
+            status: 500,
+            data: { message: "Không thể kết nối đến server" },
+        };
+    }
 }
